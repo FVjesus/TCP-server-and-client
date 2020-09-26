@@ -1,21 +1,32 @@
 import socket
 import sys
 import pickle
+import select
 
 s = socket.socket()
 
-address = sys.argv[1]
+ip = sys.argv[1]
 port = int(sys.argv[2])
-x = sys.argv[3]
-y = sys.argv[4]
+file = sys.argv[3]
+directory = sys.argv[4]
 
-s.connect((address, port))
+buffer = 1024
 
-msg = pickle.dumps((x,y))
+s.connect((ip, port))
+s.send(file.encode())
 
-s.send(msg)
-
-data = s.recv(1024)
-z = pickle.loads(data)
-
-print('%s*%s = %d'%(x,y,z))
+data = pickle.loads(s.recv(buffer))
+if file == "listCache":
+   print(data)
+else:
+    if data == "FDnE":
+         print("File", file, "does not exist in the server")
+    else:
+        f = open(directory+file, 'wb')
+        f.write(data)
+        while (select.select([s],[],[],0.1)[0]):
+            data = pickle.loads(s.recv(buffer))
+            f.write(data)
+        print("File",file, "saved")
+        f.close()
+s.close()
