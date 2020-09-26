@@ -9,7 +9,7 @@ port = int(sys.argv[2])
 x = sys.argv[3]
 y = sys.argv[4]
 
-s.connect((address, port)
+s.connect((address, port))
 
 msg = pickle.dumps((x,y))
 
