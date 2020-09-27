@@ -7,7 +7,6 @@ s = socket.socket()
 ip = sys.argv[1]
 port = int(sys.argv[2])
 file = sys.argv[3]
-directory = sys.argv[4]
 
 buffer = 1024
 
@@ -17,6 +16,7 @@ data = s.recv(buffer)
 if file == "listCache":
    print(data)
 else:
+    directory = sys.argv[4]
     if data == "FDnE":
         print("File", file, "does not exist in the server")
     else:
