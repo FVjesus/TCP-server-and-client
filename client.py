@@ -1,6 +1,5 @@
 import socket
 import sys
-import pickle
 import select
 
 s = socket.socket()
@@ -14,18 +13,17 @@ buffer = 1024
 
 s.connect((ip, port))
 s.send(file.encode())
-
-data = pickle.loads(s.recv(buffer))
+data = s.recv(buffer)
 if file == "listCache":
    print(data)
 else:
     if data == "FDnE":
-         print("File", file, "does not exist in the server")
+        print("File", file, "does not exist in the server")
     else:
         f = open(directory+file, 'wb')
         f.write(data)
         while (select.select([s],[],[],0.1)[0]):
-            data = pickle.loads(s.recv(buffer))
+            data = s.recv(buffer)
             f.write(data)
         print("File",file, "saved")
         f.close()

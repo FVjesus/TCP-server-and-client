@@ -18,8 +18,6 @@ s = socket.socket()
 s.bind(('localhost',port))
 
 def connection(conn, addr, lock):
-    lock.acquire()
-
     global cache
     global current_size
     global max_size_of_cache
@@ -28,43 +26,49 @@ def connection(conn, addr, lock):
 
     while True:
         request = conn.recv(buffer).decode()
-        if request == "listCache":
-            conn.send(pickle.dumps(str(fileList)))
-        else:
-            print("Client", addr, "requesting file", request)
-            if request in cache:
-                conn.send(pickle.dumps(cache[request][1]))
-                print("Cache hit. File", request, "sent to client.")
+        if request:
+            if request == "listCache":
+                conn.send(str(fileList).encode())
             else:
-                try:
-                    file = open(directory+request, 'rb')
-                    content = file.read()
-                    size_of_file = len(content)
-                    if size_of_file > max_size_of_cache:
-                        conn.send(pickle.dumps(content))
-                        print("Cache miss. File", request, "sent to client.")
-                    else:
-                        while (size_of_file + current_size) > max_size_of_cache:
-                            current_size -= cache[fileList[0]][0]
-                            cache.pop(fileList[0])
-                            fileList.pop(0)
-                        set_to_cache = (size_of_file, content)
-                        cache[request] = set_to_cache
-                        current_size += size_of_file
-                        fileList.append(request)
-                        conn.send(pickle.dumps(content))
-                        print("Cache miss. File", request, "sent to client.")
-                    file.close()
-                except FileNotFoundError:
-                    print("File", data, "does not exist")
-                    conn.send(pickle.dumps("FDnE"))
-        lock.release()
+                print("Client", addr, "requesting file", request)
+                if request in cache:
+                    lock.acquire()
+                    content = pickle.loads(cache[request][1])
+                    conn.send(content)
+                    print("Cache hit. File", request, "sent to client.")
+                    lock.release()
+                else:
+                    try:
+                        file = open(directory+request, 'rb')
+                        content = file.read()
+                        size_of_file = len(content)
+                        if size_of_file > max_size_of_cache:
+                            conn.send(content)
+                            print("Cache miss. File", request, "sent to client.")
+                        else:
+                            lock.acquire()
+                            while (size_of_file + current_size) > max_size_of_cache:
+                                current_size -= cache[fileList[0]][0]
+                                cache.pop(fileList[0])
+                                fileList.pop(0)
+                            set_to_cache = (size_of_file,pickle.dumps(content))
+                            cache[request] = set_to_cache
+                            current_size += size_of_file
+                            fileList.append(request)
+                            conn.send(content)
+                            print("Cache miss. File", request, "sent to client.")
+                            lock.release()
+                        file.close()
+                    except FileNotFoundError:
+                        print("File", data, "does not exist")
+                        conn.send("FDnE")
     conn.close()
 
 while True:
     s.listen()
     conn, addr = s.accept()
-    lock = threading.Lock()
-    Thread(target=connection, args=(conn, addr, lock)).start()
+    lock = threading.Semaphore()
+    client = Thread(target=connection, args=(conn, addr, lock))
+    client.start()
 
 s.close()                         
