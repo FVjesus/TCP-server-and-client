@@ -6,6 +6,7 @@ This system consists of a server and a client, the server is responsible for sen
 ## Server
 
 The server is responsible for fetching the file and sending it to the client, if the file is already in the cache the server will not fetch it from the directory provided at the start of the server.
+
 A cache listing request can also be received, in this scenario the server will return a list with the names of the files in the cache.
 
 #### Cache
@@ -51,9 +52,13 @@ python3 client.py localhost 3333 listCache
 * [Thread](https://docs.python.org/3/library/threading.html)
 ## Meta
 Fabrício Velôso de Jesus
+
 Bachelor of Exact and Technological Sciences - UFRB
+
 Graduating in Computer Engineering - UFRB
+
 [linkedin](https://www.linkedin.com/in/fabricio-veloso-23aa92198/) - [github](https://github.com/FVjesus) - [gitlab](https://gitlab.com/fabriciovellozo)
+
 fabriciovellozo@gmail.com
 
 
